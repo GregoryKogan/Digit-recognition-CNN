@@ -1,4 +1,6 @@
-import {sketch} from 'p5js-wrapper';
+import { sketch } from 'p5js-wrapper';
+// import { Neuron, Layer, Network, Trainer, Architect} from 'synaptic';
+import './nn';
 
 
 sketch.setup = function() {
