@@ -1,1 +1,1 @@
-# NeuroEvolution-Cars-2.0
+# Digit-recognition-CNN

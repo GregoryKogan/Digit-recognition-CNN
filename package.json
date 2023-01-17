@@ -1,5 +1,5 @@
 {
-  "name": "neuroevolution-cars-2-0",
+  "name": "digit-recognition-cnn",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,7 +13,7 @@
     "vite": "^4.0.0"
   },
   "dependencies": {
-    "p5js-wrapper": "^1.2.3",
-    "synaptic": "^1.1.4"
+    "@tensorflow/tfjs": "^4.2.0",
+    "p5js-wrapper": "^1.2.3"
   }
 }
