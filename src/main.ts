@@ -1,13 +1,17 @@
 import { sketch } from 'p5js-wrapper';
-import { runTraining } from './training.js';
+import { DrawingBoard } from './drawingBoard';
+// import { runTraining } from './training.js';
+
+
+let drawingBoard: DrawingBoard;
 
 
 sketch.setup = function() {
-  runTraining(100);
   sketch.createCanvas(window.innerWidth, window.innerHeight);
+  drawingBoard = new DrawingBoard();
 }
 
 sketch.draw = function(){
   sketch.background(18);
-  sketch.circle(window.innerWidth / 2, window.innerHeight / 2, 80);
+  drawingBoard.update();
 }
