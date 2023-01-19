@@ -19,7 +19,7 @@ export class DrawingBoard {
         this.prevPosX = -1;
         this.prevPosY = -1;
         this.prevPosTimestamp = Date.now();
-        this.brushRadius = 20;
+        this.brushRadius = this.pixelWidth * 3;
 
         this.clearButton;
         this.initUI();
@@ -29,6 +29,10 @@ export class DrawingBoard {
         const i = Math.floor(ind / this.widthInPixels);
         const j = ind - i * this.widthInPixels;
         return [i, j];
+    }
+
+    getIndex(i: number, j: number): number {
+        return i * this.widthInPixels + j;
     }
 
     updatePixels(x: number, y: number, startX: number, startY: number): void {
@@ -124,5 +128,26 @@ export class DrawingBoard {
                 this.pixelWidth,
             );
         }
+    }
+
+    get28x28data(): Float32Array {
+        const result = new Float32Array(28*28);
+
+        const factor = this.widthInPixels / 28;
+        for (let i = 0; i < 28; ++i) {
+            for (let j = 0; j < 28; ++j) {
+                let maxVal = 0;
+                for (let oi = 0; oi < factor; ++oi) {
+                    for (let oj = 0; oj < factor; ++oj) {
+                        maxVal = Math.max(
+                            maxVal, 
+                            this.data[this.getIndex(i * factor + oi, j * factor + oj)]
+                        );
+                    }
+                }
+                result[i * 28 + j] = maxVal;
+            }
+        }
+        return result;
     }
 }

@@ -60,7 +60,7 @@ function getModel() {
   // Note that we have more filters in the convolution.
   model.add(tf.layers.conv2d({
     kernelSize: 5,
-    filters: 16,
+    filters: 32,
     strides: 1,
     activation: 'relu',
     kernelInitializer: 'varianceScaling'
@@ -71,6 +71,12 @@ function getModel() {
   // it for input into our last layer. This is common practice when feeding
   // higher dimensional data to a final classification output layer.
   model.add(tf.layers.flatten());
+
+  model.add(tf.layers.dense({
+    units: 2048,
+    kernelInitializer: 'varianceScaling',
+    activation: 'relu',
+  }));
 
   // Our last layer is a dense layer which has 10 output units, one for each
   // output class (i.e. 0, 1, 2, 3, 4, 5, 6, 7, 8, 9).
