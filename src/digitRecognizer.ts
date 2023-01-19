@@ -1,5 +1,5 @@
 import * as tf from '@tensorflow/tfjs';
-
+import modelUrl from '../trained-model/DR-CNN-model.json?url';
 
 export class DigitRecognizer {
     model: { predict: (arg0: any) => {
@@ -13,7 +13,7 @@ export class DigitRecognizer {
     }
 
     async loadModel() {
-        this.model = await tf.loadLayersModel('trained-model/DR-CNN-model.json');
+        this.model = await tf.loadLayersModel(modelUrl);
         this.loading = false;
     }
 
