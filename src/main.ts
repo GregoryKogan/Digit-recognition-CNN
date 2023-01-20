@@ -5,7 +5,6 @@ import { DrawingBoard } from './drawingBoard';
 
 
 let drawingBoard: DrawingBoard;
-let lastUpdate: number;
 let digitRecognizer: DigitRecognizer;
 let curNumber: number = 0;
 let confidence: number = 0;
@@ -17,7 +16,6 @@ sketch.setup = function() {
   sketch.createCanvas(window.innerWidth, window.innerHeight);
   drawingBoard = new DrawingBoard();
   digitRecognizer = new DigitRecognizer();
-  lastUpdate = Date.now();
 }
 
 sketch.draw = function(){
@@ -25,14 +23,14 @@ sketch.draw = function(){
   drawingBoard.update();
 
   drawPrediction();
+}
 
-  if (Date.now() - lastUpdate > 500) {
-    lastUpdate = Date.now();
-    const data = drawingBoard.get28x28data();
-    const prediction = digitRecognizer.predict(data);
-    if (prediction)
-      [curNumber, confidence] = prediction;
-  }
+
+sketch.mouseReleased = function() {
+  const data = drawingBoard.get28x28data();
+  const prediction = digitRecognizer.predict(data);
+  if (prediction)
+    [curNumber, confidence] = prediction;
 }
 
 
