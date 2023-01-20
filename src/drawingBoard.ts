@@ -55,8 +55,6 @@ export class DrawingBoard {
                 0, this.widthInPixels
             );
 
-            console.log(nearestI, nearestJ);
-
             const offset = Math.ceil(this.brushRadius / this.pixelWidth);
             for (let io = -offset; io <= offset; io++) {
                 for (let jo = -offset; jo <= offset; jo++) {
