@@ -1,5 +1,5 @@
-import * as tf from '@tensorflow/tfjs';
-import modelUrl from '../trained-model/DR-CNN-model.json?url';
+import { loadLayersModel, tensor2d } from '@tensorflow/tfjs';
+
 
 export class DigitRecognizer {
     model: { predict: (arg0: any) => {
@@ -13,14 +13,15 @@ export class DigitRecognizer {
     }
 
     async loadModel() {
-        this.model = await tf.loadLayersModel(modelUrl);
+        const modelUrl = (await fetch('/Digit-recognition-CNN/DR-CNN-model.json')).url;
+        this.model = await loadLayersModel(modelUrl);
         this.loading = false;
     }
 
     predict(input: Float32Array): [number, number] | null {
         if (this.loading || !this.model) return null;
 
-        const inputTensor = tf.tensor2d(input, [1, 784]).reshape([1, 28, 28, 1]);
+        const inputTensor = tensor2d(input, [1, 784]).reshape([1, 28, 28, 1]);
         const prediction = this.model.predict(inputTensor).dataSync();
 
         let output = 0, confidence = 0;
