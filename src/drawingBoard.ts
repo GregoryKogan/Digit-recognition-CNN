@@ -12,7 +12,10 @@ export class DrawingBoard {
     prevPosY: number;
     clearButton: any;
     constructor() {
-        this.width = Math.min(window.innerWidth, window.innerHeight) * 2 / 3;
+        if (window.innerWidth > window.innerHeight)
+            this.width = window.innerHeight * 2 / 3;
+        else 
+            this.width = Math.min(window.innerWidth * 0.9, window.innerHeight - 200);
         this.widthInPixels = 28 * 3;
         this.pixelWidth = this.width / this.widthInPixels;
         this.data = Array(this.widthInPixels ** 2).fill(0);
