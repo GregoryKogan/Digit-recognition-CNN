@@ -11,21 +11,27 @@ export class DrawingBoard {
     prevPosX: number;
     prevPosY: number;
     clearButton: any;
+    startX: number;
+    startY: number;
     constructor() {
         if (window.innerWidth > window.innerHeight)
             this.width = window.innerHeight * 2 / 3;
         else 
             this.width = Math.min(window.innerWidth * 0.9, window.innerHeight - 200);
-        this.widthInPixels = 28 * 3;
+        this.widthInPixels = 28 * 2;
         this.pixelWidth = this.width / this.widthInPixels;
         this.data = Array(this.widthInPixels ** 2).fill(0);
         this.prevPosX = -1;
         this.prevPosY = -1;
-        this.prevPosTimestamp = Date.now();
-        this.brushRadius = this.pixelWidth * 3;
+        this.prevPosTimestamp = sketch.millis();
+        this.brushRadius = this.pixelWidth * 2.7;
+
+        this.startX = (window.innerWidth - this.width) / 2;
+        this.startY = (window.innerHeight - this.width) / 3;
 
         this.clearButton;
         this.initUI();
+        this.fullRender();
     }
 
     getIndexes(ind: number): [number, number] {
@@ -38,58 +44,81 @@ export class DrawingBoard {
         return i * this.widthInPixels + j;
     }
 
-    updatePixels(x: number, y: number, startX: number, startY: number): void {
-        for (let ind = 0; ind < this.data.length; ++ind) {
-            const [i, j] = this.getIndexes(ind);
-            const pixelCenterX = startX + j * this.pixelWidth - this.pixelWidth / 2;
-            const pixelCenterY = startY + i * this.pixelWidth - this.pixelWidth / 2;
-            const distToMouse = sketch.dist(x, y, pixelCenterX, pixelCenterY);
-            if (distToMouse > this.brushRadius) continue;
-            this.data[ind] += sketch.map(distToMouse, 0, this.brushRadius, 1, 0);
-            if (this.data[ind] > 1.0) this.data[ind] = 1.0;
+    updatePixels(points: {x: number, y: number}[]): void {
+        for (const point of points) {
+            const nearestI = sketch.constrain(
+                Math.round((point.y - this.startY) / this.pixelWidth), 
+                0, this.widthInPixels
+            );
+            const nearestJ = sketch.constrain(
+                Math.round((point.x - this.startX) / this.pixelWidth), 
+                0, this.widthInPixels
+            );
+
+            console.log(nearestI, nearestJ);
+
+            const offset = Math.ceil(this.brushRadius / this.pixelWidth);
+            for (let io = -offset; io <= offset; io++) {
+                for (let jo = -offset; jo <= offset; jo++) {
+                    const ti = nearestI + io;
+                    const tj = nearestJ + jo;
+                    if (ti < 0 || ti >= this.widthInPixels || tj < 0 || tj >= this.widthInPixels)
+                        continue;
+                    const pixelCenterX = this.startX + tj * this.pixelWidth - this.pixelWidth / 2;
+                    const pixelCenterY = this.startY + ti * this.pixelWidth - this.pixelWidth / 2;
+                    const distToMouse = sketch.dist(point.x, point.y, pixelCenterX, pixelCenterY);
+                    if (distToMouse > this.brushRadius) continue;
+                    const linearInd = this.getIndex(ti, tj);
+                    const oldValue = this.data[linearInd];
+                    this.data[linearInd] += sketch.map(distToMouse, 0, this.brushRadius, 1, 0);
+                    if (this.data[linearInd] > 1.0) this.data[linearInd] = 1.0;
+                    if (this.data[linearInd] != oldValue)
+                        this.renderPixel(linearInd);
+                }
+            }
         }
     }
 
     trackDrawing() {
         if (!sketch.mouseIsPressed) return;
-        const startX = (window.innerWidth - this.width) / 2;
-        const startY = (window.innerHeight - this.width) / 3;
         if (
-            sketch.mouseX < startX || 
-            sketch.mouseY < startY ||
-            sketch.mouseX > startX + this.width ||
-            sketch.mouseY > startY + this.width
+            sketch.mouseX < this.startX || 
+            sketch.mouseY < this.startY ||
+            sketch.mouseX > this.startX + this.width ||
+            sketch.mouseY > this.startY + this.width
         ) return;
 
-        const timeDiff = Date.now() - this.prevPosTimestamp;
+        const timeDiff = sketch.millis() - this.prevPosTimestamp;
         const posDiff = sketch.dist(sketch.mouseX, sketch.mouseY, this.prevPosX, this.prevPosY);
+
+        let points = [];
 
         if (timeDiff < 100 && posDiff > this.brushRadius) {
             const maxDist = Math.max(
                 Math.abs(sketch.mouseX - this.prevPosX),
                 Math.abs(sketch.mouseY - this.prevPosY),
             );
-            const steps = Math.ceil(maxDist / this.brushRadius * 1.3);
+            const steps = Math.ceil(maxDist / this.brushRadius * 2);
             const xStep = (sketch.mouseX - this.prevPosX) / steps;
             const yStep = (sketch.mouseY - this.prevPosY) / steps;
             for (let stepInd = 1; stepInd <= steps; stepInd++) {
-                this.updatePixels(
-                    this.prevPosX + xStep * stepInd, 
-                    this.prevPosY + yStep * stepInd, 
-                    startX, 
-                    startY
-                );
+                points.push({
+                    x: this.prevPosX + xStep * stepInd, 
+                    y: this.prevPosY + yStep * stepInd
+                });
             }
         }
 
-        this.updatePixels(sketch.mouseX, sketch.mouseY, startX, startY);
-        this.prevPosTimestamp = Date.now();
+        points.push({x: sketch.mouseX, y: sketch.mouseY});
+        this.updatePixels(points);
+        this.prevPosTimestamp = sketch.millis();
         this.prevPosX = sketch.mouseX;
         this.prevPosY = sketch.mouseY;
     }
 
     clear() {
         this.data.fill(0);
+        this.fullRender();
     }
 
     initUI(){
@@ -109,28 +138,30 @@ export class DrawingBoard {
 
     update() {
         this.trackDrawing();
-        this.render();
     }
 
-    render() {
+    renderPixel(ind: number) {
+        sketch.noStroke();
+        sketch.fill(this.data[ind] * 255);
+        const [i, j] = this.getIndexes(ind);
+            sketch.square(
+                this.startX + j * this.pixelWidth,
+                this.startY + i * this.pixelWidth,
+                this.pixelWidth,
+        );
+    }
+
+    fullRender() {
+        sketch.background(18);
+
         sketch.noFill();
         sketch.stroke("#fff");
         sketch.strokeWeight(3);
 
-        const startX = (window.innerWidth - this.width) / 2;
-        const startY = (window.innerHeight - this.width) / 3;
-        sketch.square(startX, startY, this.width);
+        sketch.square(this.startX, this.startY, this.width);
 
-        sketch.noStroke();
-        for (let ind = 0; ind < this.data.length; ++ind) {
-            sketch.fill(this.data[ind] * 255);
-            const [i, j] = this.getIndexes(ind);
-            sketch.square(
-                startX + j * this.pixelWidth,
-                startY + i * this.pixelWidth,
-                this.pixelWidth,
-            );
-        }
+        for (let ind = 0; ind < this.data.length; ++ind) 
+            this.renderPixel(ind);
     }
 
     get28x28data(): Float32Array {

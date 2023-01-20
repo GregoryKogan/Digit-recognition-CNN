@@ -16,13 +16,11 @@ sketch.setup = function() {
   sketch.createCanvas(window.innerWidth, window.innerHeight);
   drawingBoard = new DrawingBoard();
   digitRecognizer = new DigitRecognizer();
+  sketch.frameRate(60);
 }
 
 sketch.draw = function(){
-  sketch.background(18);
   drawingBoard.update();
-
-  drawPrediction();
 }
 
 
@@ -31,10 +29,11 @@ sketch.mouseReleased = function() {
   const prediction = digitRecognizer.predict(data);
   if (prediction)
     [curNumber, confidence] = prediction;
+  drawPrediction();
 }
 
 
-function drawPrediction() {
+export function drawPrediction() {
   let message: string;
   if (confidence > 0.7)
     message = "This is " + curNumber + "!\nI'm " + Math.floor(confidence * 100) + "% sure"
@@ -42,6 +41,14 @@ function drawPrediction() {
     message = "I don't know what this is...";
 
   sketch.noStroke();
+  sketch.fill(sketch.color(18));
+  sketch.rect(
+    0, 
+    (window.innerHeight - drawingBoard.width) / 3 + drawingBoard.width + 10, 
+    window.innerWidth, 
+    window.innerHeight,
+  );
+
   sketch.fill("#fff");
   sketch.textSize(30);
   sketch.textFont('Helvetica');
