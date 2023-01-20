@@ -24,14 +24,16 @@ export class DigitRecognizer {
         const inputTensor = tensor2d(input, [1, 784]).reshape([1, 28, 28, 1]);
         const prediction = this.model.predict(inputTensor).dataSync();
 
-        let output = 0, confidence = 0;
+        let output = 0;
+        let maxActivation = 0;
         for (let i = 0; i < prediction.length; i++) {
-            if (prediction[i] >= confidence) {
-                confidence = prediction[i];
+            if (prediction[i] >= maxActivation) {
+                maxActivation = prediction[i];
                 output = i;
             }
         }
-
+        const totalActivation = prediction.reduce((a: number, b: number) => a + b, 0);
+        const confidence = maxActivation / totalActivation;
         return [output, confidence];
     }
 }
