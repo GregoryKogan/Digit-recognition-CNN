@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: '/Digit-recognition-CNN/',
-})
+  base: "/digit-recognition-cnn/",
+});
